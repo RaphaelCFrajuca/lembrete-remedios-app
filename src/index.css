@@ -1,0 +1,15 @@
+.logo {
+  height: 39px;
+  margin: 12px;
+  background-image: url("/public/logo.png");
+  background-size: cover;
+}
+
+.site-layout-background {
+  background: #fff;
+}
+
+.site-layout .site-layout-background {
+  padding: 24px;
+  min-height: 280px;
+}
