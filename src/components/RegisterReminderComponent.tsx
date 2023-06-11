@@ -11,7 +11,7 @@ const RegisterReminderComponent: React.FC = () => {
     };
 
     return (
-        <Form onFinish={handleFormSubmit} layout="vertical">
+        <Form onFinish={handleFormSubmit} layout="vertical" style={{padding: 10 }}>
             <Item label="Nome do remédio" name="medicationName" rules={[{ required: true, message: "Por favor, insira o nome do remédio" }]}>
                 <Input placeholder="Nome do remédio" />
             </Item>
