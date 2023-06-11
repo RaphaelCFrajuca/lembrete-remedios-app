@@ -1,8 +1,21 @@
 import React from "react";
-import { Form, Input, Checkbox, TimePicker, Button, Space, Row } from "antd";
+import { Form, Input, Checkbox, TimePicker, Button, Space, Row, Select } from "antd";
 
 const { Item } = Form;
 const format = "HH:mm";
+
+const medicationNames = [{
+    value: "Dipirona",
+    label: "Dipirona",
+},
+{
+    value: "Nimesulida",
+    label: "Nimesulida",
+},
+{
+    value: "Diclofenaco",
+    label: "Diclofenaco",
+},]
 
 const RegisterReminderComponent: React.FC = () => {
     const handleFormSubmit = (values: any) => {
@@ -11,9 +24,23 @@ const RegisterReminderComponent: React.FC = () => {
     };
 
     return (
-        <Form onFinish={handleFormSubmit} layout="vertical" style={{padding: 10 }}>
+        <Form onFinish={handleFormSubmit} layout="vertical" style={{ padding: 10 }}>
             <Item label="Nome do remédio" name="medicationName" rules={[{ required: true, message: "Por favor, insira o nome do remédio" }]}>
-                <Input placeholder="Nome do remédio" />
+                <Select
+                    showSearch
+                    style={{ width: 400 }}
+                    placeholder="Remédio"
+                    optionFilterProp="children"
+                    filterOption={(input, option) => (option?.label ?? "").includes(input)}
+                    //filterSort={(optionA, optionB) => (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())}
+                    options={[
+                        {
+                            value: "Medicamento não identificado",
+                            label: "Outros...",
+                        },
+                        ...medicationNames,
+                    ]}
+                />
             </Item>
 
             <Form.Item label="Dias da semana" name="daysOfWeek" rules={[{ required: true, message: "Por favor, selecione os dias da semana" }]}>
@@ -31,7 +58,7 @@ const RegisterReminderComponent: React.FC = () => {
             </Form.Item>
 
             <Item label="Horário" name="reminders" rules={[{ required: true, message: "Por favor, selecione o horário de lembrete" }]}>
-                <TimePicker format={format} />
+                <TimePicker format={format} placeholder="12:00" />
             </Item>
 
             <Item>
