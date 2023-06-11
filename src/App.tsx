@@ -54,8 +54,8 @@ const App: React.FC = () => {
                     </Menu>
                 </Sider>
                 <Layout>
-                    <Content style={{ margin: "24px 16px 0" }}>
-                        <div style={{ padding: 24, background: "#fff", minHeight: 360 }}>
+                    <Content style={{ margin: "24px 16px 0", borderRadius: 20, overflow: "hidden" }}>
+                        <div style={{ background: "#fff", minHeight: 36 }}>
                             <Switch>
                                 <Route exact path="/" component={ReminderComponent} />
                                 {isAuthenticated && <Route path="/reminder/new" component={RegisterReminderComponent} />}
