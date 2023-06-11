@@ -174,7 +174,7 @@ const ReminderComponent: React.FC = () => {
                         <Popconfirm title="Tem certeza que deseja excluir?" onConfirm={() => handleDelete(Number(record.key))}>
                             <a>Excluir</a>
                         </Popconfirm>
-                        <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
+                        <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)} style={{whiteSpace: "nowrap"}}>
                             Editar
                         </Typography.Link>
                     </Space>
@@ -214,6 +214,7 @@ const ReminderComponent: React.FC = () => {
                 pagination={{
                     onChange: cancel,
                 }}
+                style={{overflow: 'auto'}}
             />
         </Form>
     );
