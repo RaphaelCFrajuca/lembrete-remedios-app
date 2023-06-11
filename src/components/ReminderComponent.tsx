@@ -1,34 +1,49 @@
-import React from "react";
-import { Space, Table, Tag, Alert } from "antd";
-import { Link } from "react-router-dom";
-import type { ColumnsType } from "antd/es/table";
-import Column from "antd/es/table/Column";
+import React, { useState } from "react";
+import { Checkbox, Form, Input, InputNumber, Popconfirm, Space, Table, Tag, Typography } from "antd";
 
-const ReminderComponent: React.FC = () => {
-  const reminderData = [
-    {
-      name: "Raphael Carneiro Frajuca",
-      medication: "Dipirona",
-      daysOfWeek: ["monday", "thursday", "friday"],
-    },
-    {
-      name: "Raquel dos Santos Carneiro",
-      medication: "Diclofenaco Sódio",
-      daysOfWeek: ["monday", "thursday", "friday", "saturday", "sunday"],
-    },
-    {
-      name: "Maria de Jesus da Silva Carneiro",
-      medication: "Clonazepam",
-      daysOfWeek: ["monday", "friday"],
-    },
-    {
-      name: "Jussara dos Santos Barreto",
-      medication: "Nimesulida",
-      daysOfWeek: ["thursday", "friday", "sunday"],
-    },
-  ];
+interface ReminderDataType {
+    key: React.Key;
+    name: string;
+    medication: string;
+    daysOfWeek: Array<string>;
+}
 
-  const daysOfWeekMap: { [key: string]: string } = {
+interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
+    editing: boolean;
+    dataIndex: string;
+    title: any;
+    inputType: "number" | "text";
+    record: ReminderDataType;
+    index: number;
+    children: React.ReactNode;
+}
+
+const EditableCell: React.FC<EditableCellProps> = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
+    const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
+
+    return (
+        <td {...restProps}>
+            {editing ? (
+                <Form.Item
+                    name={dataIndex}
+                    style={{ margin: 0 }}
+                    rules={[
+                        {
+                            required: true,
+                            message: `Please Input ${title}!`,
+                        },
+                    ]}
+                >
+                    {inputNode}
+                </Form.Item>
+            ) : (
+                children
+            )}
+        </td>
+    );
+};
+
+const daysOfWeekMap: { [key: string]: string } = {
     monday: "Segunda-feira",
     tuesday: "Terça-feira",
     wednesday: "Quarta-feira",
@@ -36,48 +51,172 @@ const ReminderComponent: React.FC = () => {
     friday: "Sexta-feira",
     saturday: "Sábado",
     sunday: "Domingo",
-  };
+};
 
-  const getPortugueseDayOfWeek = (dayOfWeek: string) => {
+const getPortugueseDayOfWeek = (dayOfWeek: string) => {
     return daysOfWeekMap[dayOfWeek.toLowerCase()] || dayOfWeek;
-  };
+};
 
-  return (
-    <>
-      {reminderData.length === 0 ? (
-        <Alert
-          message="Nenhum lembrete de remédio cadastrado"
-          description={
-            <>
-              Acesse{" "}
-              <Link to="/reminder/new">Agendar Lembretes</Link> para criar um novo lembrete.
-            </>
-          }
-          type="info"
-          showIcon
-        />
-      ) : (
-        <Table dataSource={reminderData}>
-          <Column title="Nome" dataIndex="name" key="name" />
-          <Column title="Remédio" dataIndex="medication" key="medication" />
-          <Column
-            title="Dias da Semana"
-            dataIndex="daysOfWeek"
-            key="daysOfWeek"
-            render={(tags: string[]) => (
-              <>
-                {tags.map((tag) => (
-                  <Tag color="blue" key={tag}>
-                    {getPortugueseDayOfWeek(tag)}
-                  </Tag>
-                ))}
-              </>
-            )}
-          />
-        </Table>
-      )}
-    </>
-  );
+const ReminderComponent: React.FC = () => {
+    const [form] = Form.useForm();
+    const [dataSource, setDataSource] = useState<ReminderDataType[]>([
+        {
+            key: 1,
+            name: "Raphael Carneiro Frajuca",
+            medication: "Dipirona",
+            daysOfWeek: ["monday", "thursday", "friday"],
+        },
+        {
+            key: 2,
+            name: "Raquel dos Santos Carneiro",
+            medication: "Diclofenaco Sódio",
+            daysOfWeek: ["monday", "thursday", "friday", "saturday", "sunday"],
+        },
+        {
+            key: 3,
+            name: "Maria de Jesus da Silva Carneiro",
+            medication: "Clonazepam",
+            daysOfWeek: ["monday", "friday"],
+        },
+        {
+            key: 4,
+            name: "Jussara dos Santos Barreto",
+            medication: "Nimesulida",
+            daysOfWeek: ["thursday", "friday", "sunday"],
+        },
+    ]);
+    const [editingKey, setEditingKey] = useState("");
+
+    const isEditing = (record: ReminderDataType) => record.key === editingKey;
+
+    const edit = (record: Partial<ReminderDataType> & { key: React.Key }) => {
+        form.setFieldsValue({ name: "", medication: "", daysOfWeek: [""], ...record });
+        setEditingKey(record.key as string);
+    };
+
+    const cancel = () => {
+        setEditingKey("");
+    };
+
+    const save = async (key: React.Key) => {
+        try {
+            const row = (await form.validateFields()) as ReminderDataType;
+
+            const newData = [...dataSource];
+            const index = newData.findIndex(item => key === item.key);
+            if (index > -1) {
+                const item = newData[index];
+                newData.splice(index, 1, {
+                    ...item,
+                    ...row,
+                });
+                setDataSource(newData);
+                setEditingKey("");
+            } else {
+                newData.push(row);
+                setDataSource(newData);
+                setEditingKey("");
+            }
+        } catch (errInfo) {
+            console.log("Validate Failed:", errInfo);
+        }
+    };
+
+    const handleDelete = (key: number) => {
+        const newData = dataSource.filter(item => item.key !== key);
+        setDataSource(newData);
+    };
+
+    const columns = [
+        {
+            title: "Nome",
+            dataIndex: "name",
+            editable: true,
+        },
+        {
+            title: "Remédio",
+            dataIndex: "medication",
+            editable: true,
+        },
+        {
+            title: "Dias da Semana",
+            dataIndex: "daysOfWeek",
+            editable: false,
+            render: (tags: string[]) => {
+                return (
+                    <>
+                        {tags.map(tag => (
+                            <Tag color="blue" key={tag}>
+                                {getPortugueseDayOfWeek(tag)}
+                            </Tag>
+                        ))}
+                    </>
+                );
+            },
+        },
+
+        {
+            title: "Ação",
+            dataIndex: "action",
+            render: (_: any, record: ReminderDataType) => {
+                const editable = isEditing(record);
+                return editable ? (
+                    <span>
+                        <Typography.Link onClick={() => save(record.key)} style={{ marginRight: 8 }}>
+                            Salvar
+                        </Typography.Link>
+                        <Typography.Link onClick={() => cancel()} style={{ marginRight: 8 }}>
+                            Cancelar
+                        </Typography.Link>
+                    </span>
+                ) : (
+                    <Space size="middle">
+                        <Popconfirm title="Tem certeza que deseja excluir?" onConfirm={() => handleDelete(Number(record.key))}>
+                            <a>Excluir</a>
+                        </Popconfirm>
+                        <Typography.Link disabled={editingKey !== ""} onClick={() => edit(record)}>
+                            Editar
+                        </Typography.Link>
+                    </Space>
+                );
+            },
+        },
+    ];
+
+    const mergedColumns = columns.map(col => {
+        if (!col.editable) {
+            return col;
+        }
+        return {
+            ...col,
+            onCell: (record: ReminderDataType) => ({
+                record,
+                inputType: col.dataIndex,
+                dataIndex: col.dataIndex,
+                title: col.title,
+                editing: isEditing(record),
+            }),
+        };
+    });
+
+    return (
+        <Form form={form} component={false}>
+            <Table
+                components={{
+                    body: {
+                        cell: EditableCell,
+                    },
+                }}
+                bordered
+                dataSource={dataSource}
+                columns={mergedColumns}
+                rowClassName="editable-row"
+                pagination={{
+                    onChange: cancel,
+                }}
+            />
+        </Form>
+    );
 };
 
 export default ReminderComponent;
