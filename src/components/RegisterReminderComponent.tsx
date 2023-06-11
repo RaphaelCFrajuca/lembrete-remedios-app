@@ -1,6 +1,5 @@
 import React from "react";
-import { Form, Input, Checkbox, TimePicker, Button, Space } from "antd";
-import dayjs from "dayjs";
+import { Form, Input, Checkbox, TimePicker, Button, Space, Row } from "antd";
 
 const { Item } = Form;
 const format = "HH:mm";
@@ -17,22 +16,22 @@ const RegisterReminderComponent: React.FC = () => {
                 <Input placeholder="Nome do remédio" />
             </Item>
 
-            <Item label="Dias da semana" name="daysOfWeek" rules={[{ required: true, message: "Por favor, selecione os dias da semana" }]}>
-                <Space direction="vertical">
-                    <Checkbox.Group>
-                        <Checkbox value="segunda">Segunda-feira</Checkbox>
-                        <Checkbox value="terca">Terça-feira</Checkbox>
-                        <Checkbox value="quarta">Quarta-feira</Checkbox>
-                        <Checkbox value="quinta">Quinta-feira</Checkbox>
-                        <Checkbox value="sexta">Sexta-feira</Checkbox>
-                        <Checkbox value="sabado">Sábado</Checkbox>
-                        <Checkbox value="domingo">Domingo</Checkbox>
-                    </Checkbox.Group>
-                </Space>
-            </Item>
+            <Form.Item label="Dias da semana" name="daysOfWeek" rules={[{ required: true, message: "Por favor, selecione os dias da semana" }]}>
+                <Checkbox.Group>
+                    <Row>
+                        <Checkbox value="monday">Segunda-feira</Checkbox>
+                        <Checkbox value="tuesday">Terça-feira</Checkbox>
+                        <Checkbox value="wednesday">Quarta-feira</Checkbox>
+                        <Checkbox value="thursday">Quinta-feira</Checkbox>
+                        <Checkbox value="friday">Sexta-feira</Checkbox>
+                        <Checkbox value="saturday">Sábado</Checkbox>
+                        <Checkbox value="sunday">Domingo</Checkbox>
+                    </Row>
+                </Checkbox.Group>
+            </Form.Item>
 
             <Item label="Horário" name="reminders" rules={[{ required: true, message: "Por favor, selecione o horário de lembrete" }]}>
-                <TimePicker format={format} defaultValue={dayjs("12:00", format)} />
+                <TimePicker format={format} />
             </Item>
 
             <Item>

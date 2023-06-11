@@ -4,7 +4,7 @@ import { UnorderedListOutlined, PlusOutlined } from "@ant-design/icons";
 import "./App.css";
 import history from "./utils/History";
 import { Route, Router, Switch } from "react-router-dom";
-import HomeComponent from "./components/HomeComponent";
+import ReminderComponent from "./components/ReminderComponent";
 import RegisterReminderComponent from "./components/RegisterReminderComponent";
 import { useAuth0 } from "@auth0/auth0-react";
 
@@ -16,10 +16,9 @@ const App: React.FC = () => {
     const handleMenuClick = (e: any) => {
         setSelectedMenuItem(e.key);
         if (e.key === "1") {
-            history.push("/reminder");
+            history.push("/reminder/new");
         } else if (e.key === "2") {
-            // Define o conteúdo como outro componente, se necessário
-            // ...
+            history.push("/reminder");
         }
     };
 
@@ -58,12 +57,13 @@ const App: React.FC = () => {
                     <Content style={{ margin: "24px 16px 0" }}>
                         <div style={{ padding: 24, background: "#fff", minHeight: 360 }}>
                             <Switch>
-                                <Route exact path="/" component={HomeComponent} />
-                                {isAuthenticated && <Route path="/reminder" component={RegisterReminderComponent} />}
+                                <Route exact path="/" component={ReminderComponent} />
+                                {isAuthenticated && <Route path="/reminder/new" component={RegisterReminderComponent} />}
+                                {isAuthenticated && <Route path="/reminder" component={ReminderComponent} />}
                             </Switch>
                         </div>
                     </Content>
-                    <Footer style={{ textAlign: "center" }}>Lembrete de remédios</Footer>
+                    <Footer style={{ textAlign: "center" }}>© 2023 Raphael Carneiro Frajuca. Todos os direitos reservados.</Footer>
                 </Layout>
             </Layout>
         </Router>
