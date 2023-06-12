@@ -11,7 +11,7 @@ const RegisterReminderComponent: React.FC = () => {
 
     const fetchMedications = async () => {
         try {
-            const response = await axios.get("https://bedi-lembrete-remedios.rj.r.appspot.com/medications");
+            const response = await axios.get("http://localhost:8080/medications");
             const medications = response.data;
             setMedications(medications);
         } catch (error) {
@@ -47,7 +47,7 @@ const RegisterReminderComponent: React.FC = () => {
                     style={{ width: 400 }}
                     placeholder="Remédio"
                     optionFilterProp="children"
-                    filterOption={(input, option) => (option?.label ?? "").includes(input)}
+                    filterOption={(input, option) => (option?.label?.toLowerCase() ?? "").includes(input?.toLowerCase())}
                     //filterSort={(optionA, optionB) => (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())}
                     options={[
                         {
