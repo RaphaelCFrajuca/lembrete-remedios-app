@@ -1,27 +1,43 @@
-import React from "react";
-import { Form, Input, Checkbox, TimePicker, Button, Space, Row, Select } from "antd";
+import React, { useEffect, useState } from "react";
+import { Form, Checkbox, TimePicker, Button, Row, Select, Spin } from "antd";
+import axios from "axios";
 
 const { Item } = Form;
 const format = "HH:mm";
 
-const medicationNames = [{
-    value: "Dipirona",
-    label: "Dipirona",
-},
-{
-    value: "Nimesulida",
-    label: "Nimesulida",
-},
-{
-    value: "Diclofenaco",
-    label: "Diclofenaco",
-},]
-
 const RegisterReminderComponent: React.FC = () => {
+    const [medications, setMedications] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    const fetchMedications = async () => {
+        try {
+            const response = await axios.get("https://bedi-lembrete-remedios.rj.r.appspot.com/medications");
+            const medications = response.data;
+            setMedications(medications);
+        } catch (error) {
+            console.error("Erro ao obter os dados:", error);
+            setMedications([]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchMedications();
+    }, []);
+
     const handleFormSubmit = (values: any) => {
         console.log("Form values:", values);
         // Faça a requisição para a API com os dados do formulário aqui
     };
+
+    if (isLoading) {
+        return (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+                <Spin size="large" />
+            </div>
+        );
+    }
 
     return (
         <Form onFinish={handleFormSubmit} layout="vertical" style={{ padding: 10 }}>
@@ -38,7 +54,7 @@ const RegisterReminderComponent: React.FC = () => {
                             value: "Medicamento não identificado",
                             label: "Outros...",
                         },
-                        ...medicationNames,
+                        ...medications,
                     ]}
                 />
             </Item>
