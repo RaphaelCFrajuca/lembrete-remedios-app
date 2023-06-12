@@ -11,7 +11,7 @@ const RegisterReminderComponent: React.FC = () => {
 
     const fetchMedications = async () => {
         try {
-            const response = await axios.get("http://localhost:8080/medications");
+            const response = await axios.get("https://bedi-lembrete-remedios.rj.r.appspot.com/medications");
             const medications = response.data;
             setMedications(medications);
         } catch (error) {
