@@ -7,11 +7,14 @@ import { Route, Router, Switch } from "react-router-dom";
 import ReminderComponent from "./components/ReminderComponent";
 import RegisterReminderComponent from "./components/RegisterReminderComponent";
 import { useAuth0 } from "@auth0/auth0-react";
+import axios from "axios";
 
 const App: React.FC = () => {
     const [selectedMenuItem, setSelectedMenuItem] = useState<string | null>(null);
-    const { isAuthenticated, isLoading, loginWithRedirect, user } = useAuth0();
+    const [userRegistered, setUserRegistered] = useState<boolean>(false);
+    const { isAuthenticated, isLoading, loginWithRedirect, user, getIdTokenClaims } = useAuth0();
     const { Content, Footer, Sider } = Layout;
+    const apiUrl = process.env.REACT_APP_API_URL;
 
     const handleMenuClick = (e: any) => {
         setSelectedMenuItem(e.key);
@@ -32,6 +35,21 @@ const App: React.FC = () => {
 
     if (!isAuthenticated) {
         loginWithRedirect();
+    } else {
+        getIdTokenClaims().then(async user => {
+            await axios
+                .get(`${apiUrl}/user/find`, { headers: { Authorization: `Bearer ${user?.__raw}` }, params: { email: user?.email } })
+                .then(response => {
+                    setUserRegistered(true);
+                })
+                .catch(error => {
+                    axios.post(`${apiUrl}/user/register`, user, { headers: { Authorization: `Bearer ${user?.__raw}` }});
+                    setUserRegistered(true);
+                });
+            if (userRegistered) {
+                await axios.post(`${apiUrl}/user/update`, user, { headers: { Authorization: `Bearer ${user?.__raw}` } });
+            }
+        });
     }
 
     const handleLogoClick = () => {
@@ -42,16 +60,7 @@ const App: React.FC = () => {
     return (
         <Router history={history}>
             <Layout style={{ minHeight: "100vh", padding: 0 }}>
-                <Sider
-                    breakpoint="lg"
-                    collapsedWidth="0"
-                    onBreakpoint={broken => {
-                        console.log(broken);
-                    }}
-                    onCollapse={(collapsed, type) => {
-                        console.log(collapsed, type);
-                    }}
-                >
+                <Sider breakpoint="lg" collapsedWidth="0">
                     <div className="logo" onClick={handleLogoClick} style={{ cursor: "pointer" }} />
                     <Menu theme="dark" mode="inline" selectedKeys={[selectedMenuItem as string]}>
                         <Menu.Item key="1" icon={<PlusOutlined />} onClick={handleMenuClick}>

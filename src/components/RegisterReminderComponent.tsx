@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Form, Checkbox, TimePicker, Button, Row, Select, Spin } from "antd";
 import axios from "axios";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const { Item } = Form;
 const format = "HH:mm";
@@ -8,10 +9,13 @@ const format = "HH:mm";
 const RegisterReminderComponent: React.FC = () => {
     const [medications, setMedications] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const { getIdTokenClaims } = useAuth0();
+    const apiUrl = process.env.REACT_APP_API_URL
 
     const fetchMedications = async () => {
         try {
-            const response = await axios.get("https://bedi-lembrete-remedios.rj.r.appspot.com/medications");
+            const jwtToken = (await getIdTokenClaims())?.__raw;
+            const response = await axios.get(`${apiUrl}/medications`, { headers: { Authorization: `Bearer ${jwtToken}` } });
             const medications = response.data;
             setMedications(medications);
         } catch (error) {
