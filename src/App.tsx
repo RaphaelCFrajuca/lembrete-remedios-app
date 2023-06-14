@@ -1,26 +1,30 @@
 import React, { useEffect, useState } from "react";
 import { Layout, Menu, Spin } from "antd";
-import { UnorderedListOutlined, PlusOutlined } from "@ant-design/icons";
+import { UnorderedListOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons";
 import "./App.css";
 import history from "./utils/History";
 import { Route, Router, Switch } from "react-router-dom";
 import ReminderComponent from "./components/ReminderComponent";
 import RegisterReminderComponent from "./components/RegisterReminderComponent";
-import { useAuth0 } from "@auth0/auth0-react";
+import { User, useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
+import UserComponent from "./components/UserComponent";
 
 const App: React.FC = () => {
     const [selectedMenuItem, setSelectedMenuItem] = useState<string | null>(null);
     const [userRegistered, setUserRegistered] = useState<boolean>(false);
     const { isAuthenticated, isLoading, loginWithRedirect, user, getIdTokenClaims } = useAuth0();
+    const [apiUser, setApiUser] = useState<User>(user!);
     const { Content, Footer, Sider } = Layout;
     const apiUrl = process.env.REACT_APP_API_URL;
 
     const handleMenuClick = (e: any) => {
         setSelectedMenuItem(e.key);
         if (e.key === "1") {
-            history.push("/reminder/new");
+            history.push("/user");
         } else if (e.key === "2") {
+            history.push("/reminder/new");
+        } else if (e.key === "3") {
             history.push("/reminder");
         }
     };
@@ -31,12 +35,14 @@ const App: React.FC = () => {
             if (!userToken) return;
 
             try {
-                await axios.get(`${apiUrl}/user/find`, { headers: { Authorization: `Bearer ${userToken.__raw}` }, params: { email: user?.email } });
+                await axios.get(`${apiUrl}/user/validate`, { headers: { Authorization: `Bearer ${userToken.__raw}` }, params: { email: user?.email } });
                 setUserRegistered(true);
             } catch (error) {
                 await axios.post(`${apiUrl}/user/register`, user, { headers: { Authorization: `Bearer ${userToken.__raw}` } });
                 setUserRegistered(false);
             }
+
+            setApiUser((await axios.get(`${apiUrl}/user`, { headers: { Authorization: `Bearer ${userToken.__raw}` }, params: { email: user?.email } })).data);
         };
 
         checkUserRegistration();
@@ -53,12 +59,6 @@ const App: React.FC = () => {
                     setUserRegistered(true);
                 } catch (error) {
                     console.error("Erro ao registrar usuário:", error);
-                }
-            } else {
-                try {
-                    await axios.post(`${apiUrl}/user/update`, user, { headers: { Authorization: `Bearer ${userToken.__raw}` } });
-                } catch (error) {
-                    console.error("Erro ao atualizar usuário:", error);
                 }
             }
         };
@@ -91,10 +91,13 @@ const App: React.FC = () => {
                 <Sider breakpoint="lg" collapsedWidth="0">
                     <div className="logo" onClick={handleLogoClick} style={{ cursor: "pointer" }} />
                     <Menu theme="dark" mode="inline" selectedKeys={[selectedMenuItem as string]}>
-                        <Menu.Item key="1" icon={<PlusOutlined />} onClick={handleMenuClick}>
+                        <Menu.Item key="1" icon={<UserOutlined />} onClick={handleMenuClick}>
+                            Meu Usuário
+                        </Menu.Item>
+                        <Menu.Item key="2" icon={<PlusOutlined />} onClick={handleMenuClick}>
                             Agendar Lembretes
                         </Menu.Item>
-                        <Menu.Item key="2" icon={<UnorderedListOutlined />} onClick={handleMenuClick}>
+                        <Menu.Item key="3" icon={<UnorderedListOutlined />} onClick={handleMenuClick}>
                             Meus Lembretes
                         </Menu.Item>
                     </Menu>
@@ -106,6 +109,21 @@ const App: React.FC = () => {
                                 <Route exact path="/" component={ReminderComponent} />
                                 {isAuthenticated && <Route path="/reminder/new" component={RegisterReminderComponent} />}
                                 {isAuthenticated && <Route path="/reminder" component={ReminderComponent} />}
+                                {isAuthenticated && (
+                                    <Route
+                                        path="/user"
+                                        render={() => (
+                                            <UserComponent
+                                                user={{
+                                                    name: apiUser?.name ?? "",
+                                                    picture: apiUser?.picture ?? "",
+                                                    email: apiUser?.email ?? "",
+                                                    email_verified: apiUser?.email_verified ?? false,
+                                                }}
+                                            />
+                                        )}
+                                    />
+                                )}
                             </Switch>
                         </div>
                     </Content>
