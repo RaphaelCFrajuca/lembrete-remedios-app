@@ -38,7 +38,7 @@ const App: React.FC = () => {
                 await axios.get(`${apiUrl}/user/validate`, { headers: { Authorization: `Bearer ${userToken.__raw}` }, params: { email: user?.email } });
                 setUserRegistered(true);
             } catch (error) {
-                await axios.post(`${apiUrl}/user/register`, user, { headers: { Authorization: `Bearer ${userToken.__raw}` } });
+                await axios.post(`${apiUrl}/user/new`, user, { headers: { Authorization: `Bearer ${userToken.__raw}` } });
                 setUserRegistered(false);
             }
 
@@ -55,7 +55,7 @@ const App: React.FC = () => {
 
             if (!userRegistered) {
                 try {
-                    await axios.post(`${apiUrl}/user/register`, user, { headers: { Authorization: `Bearer ${userToken.__raw}` } });
+                    await axios.post(`${apiUrl}/user/new`, user, { headers: { Authorization: `Bearer ${userToken.__raw}` } });
                     setUserRegistered(true);
                 } catch (error) {
                     console.error("Erro ao registrar usuário:", error);

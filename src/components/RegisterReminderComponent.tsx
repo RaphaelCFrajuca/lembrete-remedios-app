@@ -1,24 +1,56 @@
 import React, { useEffect, useState } from "react";
-import { Form, Checkbox, TimePicker, Button, Row, Select, Spin } from "antd";
+import { Form, Checkbox, TimePicker, Button, Row, Select, Spin, Input, notification } from "antd";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
+import dayjs from "dayjs";
+import type { NotificationPlacement } from "antd/es/notification/interface";
 
 const { Item } = Form;
+const { Option } = Select;
 const format = "HH:mm";
+const daysOfWeekOptions = [
+    { label: "Segunda-feira", value: "Segunda-feira" },
+    { label: "Terça-feira", value: "Terça-feira" },
+    { label: "Quarta-feira", value: "Quarta-feira" },
+    { label: "Quinta-feira", value: "Quinta-feira" },
+    { label: "Sexta-feira", value: "Sexta-feira" },
+    { label: "Sábado", value: "Sábado" },
+    { label: "Domingo", value: "Domingo" },
+];
 
 const RegisterReminderComponent: React.FC = () => {
     const [medications, setMedications] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const { getIdTokenClaims } = useAuth0();
-    const apiUrl = process.env.REACT_APP_API_URL
+    const apiUrl = process.env.REACT_APP_API_URL;
+    const [api, contextHolder] = notification.useNotification();
+
+    const sucessNotification = (placement: NotificationPlacement, message: string, description: string) => {
+        api.success({
+            message: message,
+            description: description,
+            placement,
+        });
+    };
+
+    const errorNotification = (placement: NotificationPlacement, message: string, description: string) => {
+        api.error({
+            message: message,
+            description: description,
+            placement,
+        });
+    };
 
     const fetchMedications = async () => {
         try {
             const jwtToken = (await getIdTokenClaims())?.__raw;
-            const response = await axios.get(`${apiUrl}/medications`, { headers: { Authorization: `Bearer ${jwtToken}` } });
+            const response = await axios.get(`${apiUrl}/medications`, {
+                headers: { Authorization: `Bearer ${jwtToken}` },
+            });
             const medications = response.data;
             setMedications(medications);
         } catch (error) {
+            errorNotification("top", "Erro ao obter lista de medicamentos!", "");
             console.error("Erro ao obter os dados:", error);
             setMedications([]);
         } finally {
@@ -31,8 +63,18 @@ const RegisterReminderComponent: React.FC = () => {
     }, []);
 
     const handleFormSubmit = (values: any) => {
-        console.log("Form values:", values);
-        // Faça a requisição para a API com os dados do formulário aqui
+        sucessNotification("top", "Lembrete salvo com sucesso!", "");
+        getIdTokenClaims().then(token => {
+            axios
+                .post(`${apiUrl}/reminder/new`, { ...values, hour: dayjs(values.hour).format(format) }, { headers: { Authorization: `Bearer ${token?.__raw}` } })
+                .then(response => {
+                    console.log(response.data);
+                })
+                .catch(error => {
+                    console.error(error);
+                    errorNotification("top", "Erro ao salvar lembrete!", error);
+                });
+        });
     };
 
     if (isLoading) {
@@ -45,14 +87,18 @@ const RegisterReminderComponent: React.FC = () => {
 
     return (
         <Form onFinish={handleFormSubmit} layout="vertical" style={{ padding: 10 }}>
-            <Item label="Nome do remédio" name="medicationName" rules={[{ required: true, message: "Por favor, insira o nome do remédio" }]}>
+            {contextHolder}
+            <Item label="Nome completo" name="fullName" rules={[{ required: true, message: "Por favor, insira o nome completo" }]}>
+                <Input placeholder="Nome completo" />
+            </Item>
+
+            <Item label="Nome do remédio" name="medicationName" rules={[{ required: true, message: "Por favor, selecione o nome do remédio" }]}>
                 <Select
                     showSearch
-                    style={{ width: 400 }}
+                    style={{ width: "100%" }}
                     placeholder="Remédio"
                     optionFilterProp="children"
                     filterOption={(input, option) => (option?.label?.toLowerCase() ?? "").includes(input?.toLowerCase())}
-                    //filterSort={(optionA, optionB) => (optionA?.label ?? "").toLowerCase().localeCompare((optionB?.label ?? "").toLowerCase())}
                     options={[
                         {
                             value: "Medicamento não identificado",
@@ -64,25 +110,23 @@ const RegisterReminderComponent: React.FC = () => {
             </Item>
 
             <Form.Item label="Dias da semana" name="daysOfWeek" rules={[{ required: true, message: "Por favor, selecione os dias da semana" }]}>
-                <Checkbox.Group>
+                <Checkbox.Group style={{ width: "100%" }}>
                     <Row>
-                        <Checkbox value="monday">Segunda-feira</Checkbox>
-                        <Checkbox value="tuesday">Terça-feira</Checkbox>
-                        <Checkbox value="wednesday">Quarta-feira</Checkbox>
-                        <Checkbox value="thursday">Quinta-feira</Checkbox>
-                        <Checkbox value="friday">Sexta-feira</Checkbox>
-                        <Checkbox value="saturday">Sábado</Checkbox>
-                        <Checkbox value="sunday">Domingo</Checkbox>
+                        {daysOfWeekOptions.map(option => (
+                            <Checkbox key={option.value} value={option.value} style={{ margin: "0 8px 8px 0" }}>
+                                {option.label}
+                            </Checkbox>
+                        ))}
                     </Row>
                 </Checkbox.Group>
             </Form.Item>
 
-            <Item label="Horário" name="reminders" rules={[{ required: true, message: "Por favor, selecione o horário de lembrete" }]}>
+            <Item label="Horário" name="hour" rules={[{ required: true, message: "Por favor, selecione o horário de lembrete" }]}>
                 <TimePicker format={format} placeholder="12:00" />
             </Item>
 
             <Item>
-                <Button type="primary" htmlType="submit">
+                <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
                     Agendar Lembrete
                 </Button>
             </Item>
