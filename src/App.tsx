@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Layout, Menu, Spin } from "antd";
-import { UnorderedListOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons";
+import { Form, Input, Layout, Menu, Modal, Spin } from "antd";
+import { UnorderedListOutlined, PlusOutlined, UserOutlined, QuestionCircleFilled } from "@ant-design/icons";
 import "./App.css";
 import history from "./utils/History";
 import { Route, Router, Switch } from "react-router-dom";
@@ -8,7 +8,7 @@ import ReminderComponent from "./components/ReminderComponent";
 import RegisterReminderComponent from "./components/RegisterReminderComponent";
 import { User, useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
-import UserComponent from "./components/UserComponent";
+import UserComponent, { validatePhoneNumber } from "./components/UserComponent";
 
 const App: React.FC = () => {
     const [selectedMenuItem, setSelectedMenuItem] = useState<string | null>(null);
@@ -16,6 +16,8 @@ const App: React.FC = () => {
     const { isAuthenticated, isLoading, loginWithRedirect, user, getIdTokenClaims } = useAuth0();
     const [apiUser, setApiUser] = useState<User>(user!);
     const { Content, Footer, Sider } = Layout;
+    const { confirm } = Modal;
+    const [form] = Form.useForm();
     const apiUrl = process.env.REACT_APP_API_URL;
 
     const handleMenuClick = (e: any) => {
@@ -38,11 +40,49 @@ const App: React.FC = () => {
                 await axios.get(`${apiUrl}/user/validate`, { headers: { Authorization: `Bearer ${userToken.__raw}` }, params: { email: user?.email } });
                 setUserRegistered(true);
             } catch (error) {
-                await axios.post(`${apiUrl}/user/new`, user, { headers: { Authorization: `Bearer ${userToken.__raw}` } });
-                setUserRegistered(false);
+                confirm({
+                    title: "Insira seu número de telefone",
+                    icon: <QuestionCircleFilled />,
+                    cancelButtonProps: {
+                        disabled: true,
+                    },
+                    content: (
+                        <Form form={form}>
+                            <Form.Item name="phone" rules={[{ required: true, message: "Por favor, insira o número de telefone." }, { validator: validatePhoneNumber }]}>
+                                <Input addonBefore="+55" placeholder="Número de telefone" />
+                            </Form.Item>
+                        </Form>
+                    ),
+                    onOk() {
+                        return new Promise<void>((resolve, reject) => {
+                            setTimeout(() => {
+                                form.validateFields()
+                                    .then(values => {
+                                        values.phone = "+55" + values.phone.replaceAll(" ", "").replaceAll("-", "");
+                                        axios
+                                            .post(
+                                                `${apiUrl}/user/new`,
+                                                { ...user, phone: values.phone, reminderChannel: "SMS" },
+                                                { headers: { Authorization: `Bearer ${userToken.__raw}` } },
+                                            )
+                                            .then(() => {
+                                                setUserRegistered(false);
+                                                axios
+                                                    .get(`${apiUrl}/user`, { headers: { Authorization: `Bearer ${userToken.__raw}` }, params: { email: user?.email } })
+                                                    .then(data => {
+                                                        setApiUser(data.data);
+                                                    });
+                                                resolve();
+                                            });
+                                    })
+                                    .catch(error => {
+                                        reject(error);
+                                    });
+                            });
+                        });
+                    },
+                });
             }
-
-            setApiUser((await axios.get(`${apiUrl}/user`, { headers: { Authorization: `Bearer ${userToken.__raw}` }, params: { email: user?.email } })).data);
         };
 
         checkUserRegistration();
@@ -119,6 +159,8 @@ const App: React.FC = () => {
                                                     picture: apiUser?.picture ?? "",
                                                     email: apiUser?.email ?? "",
                                                     email_verified: apiUser?.email_verified ?? false,
+                                                    phone: apiUser?.phone ?? "",
+                                                    reminderChannel: apiUser?.reminderChannel ?? "SMS",
                                                 }}
                                             />
                                         )}
