@@ -26,7 +26,7 @@ const RegisterReminderComponent: React.FC = () => {
     const [api, contextHolder] = notification.useNotification();
     const [nameOptions, setNameOptions] = useState<string[]>([]);
 
-    const sucessNotification = (placement: NotificationPlacement, message: string, description: string) => {
+    const successNotification = (placement: NotificationPlacement, message: string, description: string) => {
         api.success({
             message: message,
             description: description,
@@ -79,7 +79,7 @@ const RegisterReminderComponent: React.FC = () => {
     }, []);
 
     const handleFormSubmit = (values: any) => {
-        sucessNotification("top", "Lembrete salvo com sucesso!", "");
+        successNotification("top", "Lembrete salvo com sucesso!", "");
         getIdTokenClaims().then(token => {
             axios
                 .post(`${apiUrl}/reminder/new`, { ...values, hour: dayjs(values.hour).format(format) }, { headers: { Authorization: `Bearer ${token?.__raw}` } })
