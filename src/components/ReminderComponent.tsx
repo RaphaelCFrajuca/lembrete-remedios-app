@@ -125,7 +125,6 @@ const daysOfWeekMap: { [key: string]: string } = {
 };
 
 const getPortugueseDayOfWeek = (dayOfWeek: string[] | string) => {
-
     return daysOfWeekMap[dayOfWeek[0].toLowerCase()] || dayOfWeek;
 };
 
@@ -392,9 +391,9 @@ const ReminderComponent: React.FC = () => {
                     const filteredReminderList = item.reminderList.map(reminder => {
                         if (reminder.key === reminder.key && reminder.dayOfWeek === record.dayOfWeek && reminder.uniqueId === record.uniqueId) {
                             const updatedReminders: Reminder[] = reminder.reminders;
-                            let dayOfWeek = row.dayOfWeek
-                            if(typeof dayOfWeek === "object") {
-                                dayOfWeek = dayOfWeek[0]
+                            let dayOfWeek = row.dayOfWeek;
+                            if (typeof dayOfWeek === "object") {
+                                dayOfWeek = dayOfWeek[0];
                             }
                             const updatedList: ReminderList = {
                                 ...reminder,
