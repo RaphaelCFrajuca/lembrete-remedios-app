@@ -111,7 +111,7 @@ const App: React.FC = () => {
     return (
         <Router history={history}>
             <Layout style={{ minHeight: "100vh", padding: 0 }}>
-                <Sider breakpoint="lg" collapsedWidth="65" width={217}>
+                <Sider breakpoint="lg" collapsedWidth="70" width={225}>
                     <div className="logo" onClick={handleLogoClick} style={{ cursor: "pointer" }} />
                     <Menu theme="dark" mode="inline" selectedKeys={[selectedMenuItem as string]}>
                         <Menu.Item key="1-1" icon={<UserOutlined />} onClick={handleMenuClick}>

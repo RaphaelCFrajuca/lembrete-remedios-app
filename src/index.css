@@ -1,7 +1,7 @@
 .logo {
-  height: 39px;
+  height: 45px;
   margin: 12px;
-  background-image: url("/public/logo.png");
+  background-image: url("/public/logo2.png");
   background-size: cover;
   background-repeat: no-repeat;
 }
