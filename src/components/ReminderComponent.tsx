@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Form, Table, Button, InputNumber, Input, Typography, Space, Popconfirm, notification } from "antd";
+import { Form, Table, Button, InputNumber, Input, Typography, Space, Popconfirm, notification, Cascader, TimePicker } from "antd";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import { NotificationPlacement } from "antd/es/notification/interface";
 import { DeleteOutlined, EditOutlined, SaveOutlined, StopOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 
 interface Reminder {
     level: 2;
@@ -33,14 +34,63 @@ interface EditableCellProps extends React.HTMLAttributes<HTMLElement> {
     editing: boolean;
     dataIndex: string;
     title: any;
-    inputType: "number" | "text";
+    inputType: "number" | "text" | "week" | "hour";
     record: any;
     index: number;
     children: React.ReactNode;
 }
 
 const EditableCell: React.FC<EditableCellProps> = ({ editing, dataIndex, title, inputType, record, index, children, ...restProps }) => {
-    const inputNode = inputType === "number" ? <InputNumber /> : <Input />;
+    let inputNode = <Input />;
+    switch (inputType) {
+        case "number":
+            inputNode = <InputNumber />;
+            break;
+        case "text":
+            inputNode = <Input />;
+            break;
+        case "week":
+            inputNode = (
+                <Cascader
+                    options={[
+                        {
+                            value: "Segunda-feira",
+                            label: "Segunda-feira",
+                        },
+                        {
+                            value: "Terça-feira",
+                            label: "Terça-feira",
+                        },
+                        {
+                            value: "Quarta-feira",
+                            label: "Quarta-feira",
+                        },
+                        {
+                            value: "Quinta-feira",
+                            label: "Quinta-feira",
+                        },
+                        {
+                            value: "Sexta-feira",
+                            label: "Sexta-feira",
+                        },
+                        {
+                            value: "Sábado",
+                            label: "Sábado",
+                        },
+                        {
+                            value: "Domingo",
+                            label: "Domingo",
+                        },
+                    ]}
+                />
+            );
+            break;
+        case "hour":
+            if (dataIndex === "hour") {
+                inputNode = <TimePicker format={"HH:mm"} inputReadOnly={true} showNow={false} />;
+            }
+            break;
+    }
 
     return (
         <td {...restProps}>
@@ -74,8 +124,8 @@ const daysOfWeekMap: { [key: string]: string } = {
     sunday: "Domingo",
 };
 
-const getPortugueseDayOfWeek = (dayOfWeek: string) => {
-    return daysOfWeekMap[dayOfWeek.toLowerCase()] || dayOfWeek;
+const getPortugueseDayOfWeek = (dayOfWeek: string[]) => {
+    return daysOfWeekMap[dayOfWeek[0].toLowerCase()] || dayOfWeek;
 };
 
 const ReminderComponent: React.FC = () => {
@@ -134,7 +184,10 @@ const ReminderComponent: React.FC = () => {
         setEditingRecord(record);
         setEditingKey(record.key as string);
         setEditingLevel(record.level);
-        form.setFieldsValue({ ...record, teste: "teste" });
+        if (record.hour) {
+            record.hour = dayjs(record.hour, "HH:mm");
+        }
+        form.setFieldsValue({ ...record });
     };
 
     useEffect(() => {
@@ -192,7 +245,7 @@ const ReminderComponent: React.FC = () => {
             ...col,
             onCell: (record: User) => ({
                 record,
-                inputType: col.dataIndex,
+                inputType: "text",
                 dataIndex: col.dataIndex,
                 title: col.title,
                 editing: editingRecord === record,
@@ -205,7 +258,7 @@ const ReminderComponent: React.FC = () => {
             title: "Dia da semana",
             dataIndex: "dayOfWeek",
             editable: true,
-            render: (dayOfWeek: string) => getPortugueseDayOfWeek(dayOfWeek),
+            render: (dayOfWeek: string[]) => getPortugueseDayOfWeek(dayOfWeek),
         },
         {
             title: "Ação",
@@ -214,7 +267,7 @@ const ReminderComponent: React.FC = () => {
                 const editable = isEditing(record, 1);
                 return editable ? (
                     <span>
-                        <Button icon={<SaveOutlined />} onClick={() => handleSave(record, 0)} style={{ marginRight: 8, color: "green" }}>
+                        <Button icon={<SaveOutlined />} onClick={() => handleSave(record, 1)} style={{ marginRight: 8, color: "green" }}>
                             Salvar
                         </Button>
                         <Button icon={<StopOutlined />} onClick={() => cancel()} style={{ marginRight: 8, color: "red" }}>
@@ -245,7 +298,7 @@ const ReminderComponent: React.FC = () => {
             ...col,
             onCell: (record: ReminderList) => ({
                 record,
-                inputType: col.dataIndex,
+                inputType: "week",
                 dataIndex: col.dataIndex,
                 title: col.title,
                 editing: editingRecord === record,
@@ -302,7 +355,7 @@ const ReminderComponent: React.FC = () => {
             ...col,
             onCell: (record: Reminder) => ({
                 record,
-                inputType: col.dataIndex,
+                inputType: "hour",
                 dataIndex: col.dataIndex,
                 title: col.title,
                 editing: editingRecord === record,
@@ -340,7 +393,7 @@ const ReminderComponent: React.FC = () => {
                             const updatedReminders: Reminder[] = reminder.reminders;
                             const updatedList: ReminderList = {
                                 ...reminder,
-                                dayOfWeek: row.dayOfWeek,
+                                dayOfWeek: row.dayOfWeek[0],
                             };
                             return { ...updatedList, reminders: updatedReminders };
                         }
@@ -358,7 +411,7 @@ const ReminderComponent: React.FC = () => {
                     const filteredReminderList = item.reminderList.map(reminder => {
                         const updatedReminders = reminder.reminders.map(reminderItem => {
                             if (reminderItem.key === record.key && reminderItem.medication === record.medication && reminderItem.hour === record.hour) {
-                                return { ...reminderItem, medication: row.medication, hour: row.hour };
+                                return { ...reminderItem, medication: row.medication, hour: dayjs(row.hour).format("HH:mm") };
                             }
                             return reminderItem;
                         });

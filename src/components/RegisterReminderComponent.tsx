@@ -122,7 +122,7 @@ const RegisterReminderComponent: React.FC = () => {
             </Form.Item>
 
             <Item label="Horário" name="hour" rules={[{ required: true, message: "Por favor, selecione o horário de lembrete" }]}>
-                <TimePicker format={format} placeholder="12:00" />
+                <TimePicker format={format} placeholder="12:00" inputReadOnly={true} showNow={false} />
             </Item>
 
             <Item>
