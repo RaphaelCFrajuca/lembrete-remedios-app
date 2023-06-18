@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Checkbox, TimePicker, Button, Row, Select, Spin, Input, notification } from "antd";
+import { Form, Checkbox, TimePicker, Button, Row, Select, Spin, Input, notification, AutoComplete } from "antd";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import dayjs from "dayjs";
@@ -24,6 +24,7 @@ const RegisterReminderComponent: React.FC = () => {
     const { getIdTokenClaims } = useAuth0();
     const apiUrl = process.env.REACT_APP_API_URL;
     const [api, contextHolder] = notification.useNotification();
+    const [nameOptions, setNameOptions] = useState<string[]>([]);
 
     const sucessNotification = (placement: NotificationPlacement, message: string, description: string) => {
         api.success({
@@ -39,6 +40,20 @@ const RegisterReminderComponent: React.FC = () => {
             description: description,
             placement,
         });
+    };
+
+    const fetchNames = async () => {
+        try {
+            const jwtToken = (await getIdTokenClaims())?.__raw;
+            const response = await axios.get(`${apiUrl}/reminder/name`, {
+                headers: { Authorization: `Bearer ${jwtToken}` },
+            });
+            const names = response.data;
+            setNameOptions(names);
+        } catch (error) {
+            console.error(error);
+            setNameOptions([]);
+        }
     };
 
     const fetchMedications = async () => {
@@ -60,6 +75,7 @@ const RegisterReminderComponent: React.FC = () => {
 
     useEffect(() => {
         fetchMedications();
+        fetchNames();
     }, []);
 
     const handleFormSubmit = (values: any) => {
@@ -89,7 +105,11 @@ const RegisterReminderComponent: React.FC = () => {
         <Form onFinish={handleFormSubmit} layout="vertical" style={{ padding: 10 }}>
             {contextHolder}
             <Item label="Nome completo" name="fullName" rules={[{ required: true, message: "Por favor, insira o nome completo" }]}>
-                <Input placeholder="Nome completo" />
+                <AutoComplete
+                    placeholder="Nome completo"
+                    options={nameOptions.map(name => ({ value: name }))}
+                    filterOption={(inputValue, option) => option?.value.toLowerCase().indexOf(inputValue.toLowerCase()) !== -1}
+                />
             </Item>
 
             <Item label="Nome do remédio" name="medicationName" rules={[{ required: true, message: "Por favor, selecione o nome do remédio" }]}>
