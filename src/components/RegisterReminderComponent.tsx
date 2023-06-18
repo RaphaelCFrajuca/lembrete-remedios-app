@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Form, Checkbox, TimePicker, Button, Row, Select, Spin, Input, notification, AutoComplete } from "antd";
+import { Form, TimePicker, Button, Spin, notification, Select, AutoComplete, Row, Col } from "antd";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import dayjs from "dayjs";
@@ -8,15 +8,7 @@ import type { NotificationPlacement } from "antd/es/notification/interface";
 const { Item } = Form;
 const { Option } = Select;
 const format = "HH:mm";
-const daysOfWeekOptions = [
-    { label: "Segunda-feira", value: "Segunda-feira" },
-    { label: "Terça-feira", value: "Terça-feira" },
-    { label: "Quarta-feira", value: "Quarta-feira" },
-    { label: "Quinta-feira", value: "Quinta-feira" },
-    { label: "Sexta-feira", value: "Sexta-feira" },
-    { label: "Sábado", value: "Sábado" },
-    { label: "Domingo", value: "Domingo" },
-];
+const daysOfWeekOptions = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"];
 
 const RegisterReminderComponent: React.FC = () => {
     const [medications, setMedications] = useState([]);
@@ -95,7 +87,14 @@ const RegisterReminderComponent: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100vh",
+                }}
+            >
                 <Spin size="large" />
             </div>
         );
@@ -104,46 +103,54 @@ const RegisterReminderComponent: React.FC = () => {
     return (
         <Form onFinish={handleFormSubmit} layout="vertical" style={{ padding: 10 }}>
             {contextHolder}
-            <Item label="Nome completo" name="fullName" rules={[{ required: true, message: "Por favor, insira o nome completo" }]}>
-                <AutoComplete
-                    placeholder="Nome completo"
-                    options={nameOptions.map(name => ({ value: name }))}
-                    filterOption={(inputValue, option) => option?.value.toLowerCase().indexOf(inputValue.toLowerCase()) !== -1}
-                />
-            </Item>
+            <Row gutter={16}>
+                <Col span={12}>
+                    <Item label="Nome completo" name="fullName" rules={[{ required: true, message: "Por favor, insira o nome completo" }]}>
+                        <AutoComplete
+                            placeholder="Nome completo"
+                            options={nameOptions.map(name => ({ value: name }))}
+                            filterOption={(inputValue, option) => option?.value.toLowerCase().indexOf(inputValue.toLowerCase()) !== -1}
+                        />
+                    </Item>
+                </Col>
+                <Col span={12}>
+                    <Item label="Nome do remédio" name="medicationName" rules={[{ required: true, message: "Por favor, selecione o nome do remédio" }]}>
+                        <Select
+                            showSearch
+                            style={{ width: "100%" }}
+                            placeholder="Remédio"
+                            optionFilterProp="children"
+                            filterOption={(input, option) => (option?.label?.toLowerCase() ?? "").includes(input?.toLowerCase())}
+                            options={[
+                                {
+                                    value: "Medicamento não identificado",
+                                    label: "Outros...",
+                                },
+                                ...medications,
+                            ]}
+                        />
+                    </Item>
+                </Col>
+            </Row>
 
-            <Item label="Nome do remédio" name="medicationName" rules={[{ required: true, message: "Por favor, selecione o nome do remédio" }]}>
-                <Select
-                    showSearch
-                    style={{ width: "100%" }}
-                    placeholder="Remédio"
-                    optionFilterProp="children"
-                    filterOption={(input, option) => (option?.label?.toLowerCase() ?? "").includes(input?.toLowerCase())}
-                    options={[
-                        {
-                            value: "Medicamento não identificado",
-                            label: "Outros...",
-                        },
-                        ...medications,
-                    ]}
-                />
-            </Item>
-
-            <Form.Item label="Dias da semana" name="daysOfWeek" rules={[{ required: true, message: "Por favor, selecione os dias da semana" }]}>
-                <Checkbox.Group style={{ width: "100%" }}>
-                    <Row>
-                        {daysOfWeekOptions.map(option => (
-                            <Checkbox key={option.value} value={option.value} style={{ margin: "0 8px 8px 0" }}>
-                                {option.label}
-                            </Checkbox>
-                        ))}
-                    </Row>
-                </Checkbox.Group>
-            </Form.Item>
-
-            <Item label="Horário" name="hour" rules={[{ required: true, message: "Por favor, selecione o horário de lembrete" }]}>
-                <TimePicker format={format} placeholder="12:00" inputReadOnly={true} showNow={false} />
-            </Item>
+            <Row gutter={16}>
+                <Col span={12}>
+                    <Item label="Dias da semana" name="daysOfWeek" rules={[{ required: true, message: "Por favor, selecione os dias da semana" }]}>
+                        <Select mode="multiple" placeholder="Selecione os dias da semana" allowClear>
+                            {daysOfWeekOptions.map(option => (
+                                <Option key={option} value={option}>
+                                    {option}
+                                </Option>
+                            ))}
+                        </Select>
+                    </Item>
+                </Col>
+                <Col span={12}>
+                    <Item label="Horário" name="hour" rules={[{ required: true, message: "Por favor, selecione o horário de lembrete" }]}>
+                        <TimePicker format={format} placeholder="12:00" inputReadOnly={true} showNow={false} />
+                    </Item>
+                </Col>
+            </Row>
 
             <Item>
                 <Button type="primary" htmlType="submit" style={{ width: "100%" }}>

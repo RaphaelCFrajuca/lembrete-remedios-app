@@ -3,6 +3,7 @@
   margin: 12px;
   background-image: url("/public/logo.png");
   background-size: cover;
+  background-repeat: no-repeat;
 }
 
 .site-layout-background {

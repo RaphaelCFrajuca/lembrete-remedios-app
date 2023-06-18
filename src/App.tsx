@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Form, Input, Layout, Menu, Modal, Spin } from "antd";
-import { UnorderedListOutlined, PlusOutlined, UserOutlined, QuestionCircleFilled } from "@ant-design/icons";
+import { UnorderedListOutlined, UserOutlined, CalendarOutlined, QuestionCircleFilled, ClockCircleOutlined } from "@ant-design/icons";
 import "./App.css";
 import history from "./utils/History";
 import { Route, Router, Switch } from "react-router-dom";
@@ -10,23 +10,25 @@ import { User, useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import UserComponent, { validatePhoneNumber } from "./components/UserComponent";
 
+const { Content, Footer, Sider } = Layout;
+const { SubMenu } = Menu;
+
 const App: React.FC = () => {
     const [selectedMenuItem, setSelectedMenuItem] = useState<string | null>(null);
     const [userRegistered, setUserRegistered] = useState<boolean>(false);
     const { isAuthenticated, isLoading, loginWithRedirect, user, getIdTokenClaims } = useAuth0();
     const [apiUser, setApiUser] = useState<User>(user!);
-    const { Content, Footer, Sider } = Layout;
     const { confirm } = Modal;
     const [form] = Form.useForm();
     const apiUrl = process.env.REACT_APP_API_URL;
 
     const handleMenuClick = (e: any) => {
         setSelectedMenuItem(e.key);
-        if (e.key === "1") {
+        if (e.key === "1-1") {
             history.push("/user");
-        } else if (e.key === "2") {
+        } else if (e.key === "2-1") {
             history.push("/reminder/new");
-        } else if (e.key === "3") {
+        } else if (e.key === "2-2") {
             history.push("/reminder");
         }
     };
@@ -86,27 +88,7 @@ const App: React.FC = () => {
         };
 
         checkUserRegistration();
-    }, [getIdTokenClaims, apiUrl, user]);
-
-    useEffect(() => {
-        const updateUser = async () => {
-            const userToken = await getIdTokenClaims();
-            if (!userToken) return;
-
-            if (!userRegistered) {
-                try {
-                    await axios.post(`${apiUrl}/user/new`, user, { headers: { Authorization: `Bearer ${userToken.__raw}` } });
-                    setUserRegistered(true);
-                } catch (error) {
-                    console.error("Erro ao registrar usuário:", error);
-                }
-            }
-        };
-
-        if (userRegistered) {
-            updateUser();
-        }
-    }, [getIdTokenClaims, apiUrl, user, userRegistered]);
+    }, [getIdTokenClaims, apiUrl, user, form]);
 
     const handleLogoClick = () => {
         setSelectedMenuItem(null);
@@ -123,23 +105,26 @@ const App: React.FC = () => {
 
     if (!isAuthenticated) {
         loginWithRedirect();
+        return null;
     }
 
     return (
         <Router history={history}>
             <Layout style={{ minHeight: "100vh", padding: 0 }}>
-                <Sider breakpoint="lg" collapsedWidth="0">
+                <Sider breakpoint="lg" collapsedWidth="65" width={217}>
                     <div className="logo" onClick={handleLogoClick} style={{ cursor: "pointer" }} />
                     <Menu theme="dark" mode="inline" selectedKeys={[selectedMenuItem as string]}>
-                        <Menu.Item key="1" icon={<UserOutlined />} onClick={handleMenuClick}>
+                        <Menu.Item key="1-1" icon={<UserOutlined />} onClick={handleMenuClick}>
                             Meu Usuário
                         </Menu.Item>
-                        <Menu.Item key="2" icon={<PlusOutlined />} onClick={handleMenuClick}>
-                            Agendar Lembretes
-                        </Menu.Item>
-                        <Menu.Item key="3" icon={<UnorderedListOutlined />} onClick={handleMenuClick}>
-                            Meus Lembretes
-                        </Menu.Item>
+                        <SubMenu key="2" icon={<ClockCircleOutlined />} title="Lembretes">
+                            <Menu.Item key="2-1" onClick={handleMenuClick} icon={<CalendarOutlined />}>
+                                Agendar Lembretes
+                            </Menu.Item>
+                            <Menu.Item key="2-2" onClick={handleMenuClick} icon={<UnorderedListOutlined />}>
+                                Meus Lembretes
+                            </Menu.Item>
+                        </SubMenu>
                     </Menu>
                 </Sider>
                 <Layout>
