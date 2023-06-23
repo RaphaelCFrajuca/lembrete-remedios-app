@@ -387,6 +387,7 @@ const ReminderComponent: React.FC = () => {
                 break;
             }
             case 1: {
+                const weekDay: any[] = [];
                 updatedData = dataSource.map(item => {
                     const filteredReminderList = item.reminderList.map(reminder => {
                         if (reminder.key === reminder.key && reminder.dayOfWeek === record.dayOfWeek && reminder.uniqueId === record.uniqueId) {
@@ -399,13 +400,27 @@ const ReminderComponent: React.FC = () => {
                                 ...reminder,
                                 dayOfWeek: dayOfWeek,
                             };
+                            weekDay.push({ ...updatedList, reminders: updatedReminders });
                             return { ...updatedList, reminders: updatedReminders };
                         }
+                        weekDay.push(reminder);
                         return reminder;
                     });
                     return { ...item, reminderList: filteredReminderList };
                 });
-                setEditingKey("");
+
+                updatedData.map(item => {
+                    const filteredReminderList = item.reminderList.map((reminder, index) => {
+                        const weekNameIndex = weekDay.findIndex(item => item.dayOfWeek === reminder.dayOfWeek);
+                        if (weekNameIndex !== index) {
+                            errorNotification("top", `O dia ${reminder.dayOfWeek} já existe no agendamento!`, "");
+                            updatedData = dataSource;
+                        }
+                        return { ...reminder, reminders: reminder.reminders };
+                    });
+                    return { ...item, reminderList: filteredReminderList };
+                }),
+                    setEditingKey("");
                 setEditingLevel(0);
                 setEditingRecord({});
                 break;
@@ -430,18 +445,20 @@ const ReminderComponent: React.FC = () => {
             }
         }
         setDataSource(updatedData);
-        getIdTokenClaims().then(token => {
-            axios
-                .put(`${apiUrl}/reminder/update`, updatedData, { headers: { Authorization: `Bearer ${token?.__raw}` } })
-                .then(response => {
-                    console.log(response.data);
-                    sucessNotification("top", "Dados atualizados com sucesso!", "");
-                })
-                .catch(error => {
-                    errorNotification("top", "Houve um erro ao atualizar os dados!", error);
-                    console.error(error);
-                });
-        });
+        if (dataSource !== updatedData) {
+            getIdTokenClaims().then(token => {
+                axios
+                    .put(`${apiUrl}/reminder/update`, updatedData, { headers: { Authorization: `Bearer ${token?.__raw}` } })
+                    .then(response => {
+                        console.log(response.data);
+                        sucessNotification("top", "Dados atualizados com sucesso!", "");
+                    })
+                    .catch(error => {
+                        errorNotification("top", "Houve um erro ao atualizar os dados!", error);
+                        console.error(error);
+                    });
+            });
+        }
     };
 
     const handleDelete = (record: Partial<any>, level: number) => {
