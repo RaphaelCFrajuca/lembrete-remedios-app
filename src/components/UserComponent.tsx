@@ -187,6 +187,7 @@ const UserComponent: React.FC<UserInfoProps> = ({ user }) => {
                 title={
                     editing ? (
                         <Form
+                            style={{ overflow: "auto" }}
                             form={form}
                             onFinish={handleSave}
                             initialValues={{ name: currentUser.name, reminderChannel: currentUser.reminderChannel, phone: currentUser.phone.replace("+55", "") }}
