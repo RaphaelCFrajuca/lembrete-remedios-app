@@ -145,7 +145,7 @@ const App: React.FC = () => {
                                                     email: apiUser?.email ?? "",
                                                     email_verified: apiUser?.email_verified ?? false,
                                                     phone: apiUser?.phone ?? "",
-                                                    reminderChannel: apiUser?.reminderChannel ?? "SMS",
+                                                    reminderChannel: apiUser?.reminderChannel ?? "EMAIL",
                                                 }}
                                             />
                                         )}
