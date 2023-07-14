@@ -64,7 +64,7 @@ const App: React.FC = () => {
                                         axios
                                             .post(
                                                 `${apiUrl}/user/new`,
-                                                { ...user, phone: values.phone, reminderChannel: "SMS" },
+                                                { ...user, phone: values.phone, reminderChannel: "EMAIL" },
                                                 { headers: { Authorization: `Bearer ${userToken.__raw}` } },
                                             )
                                             .then(() => {
